@@ -336,7 +336,7 @@ class Segment(BasePathMixin):
       Key used to encrypt the segment (EXT-X-KEY)
     '''
 
-    def __init__(self, uri, base_uri, program_date_time=None, duration=None,
+    def __init__(self, uri=None, base_uri=None, program_date_time=None, duration=None,
                  title=None, byterange=None, cue_out=False, discontinuity=False, key=None,
                  scte35=None, scte35_duration=None, keyobject=None):
         self.uri = uri
@@ -354,6 +354,10 @@ class Segment(BasePathMixin):
 
     def dumps(self, last_segment):
         output = []
+        if self.discontinuity:
+            output.append('#EXT-X-DISCONTINUITY')
+            return ''.join(output)
+
         if last_segment and self.key != last_segment.key:
             output.append(str(self.key))
             output.append('\n')
@@ -368,6 +372,7 @@ class Segment(BasePathMixin):
             if self.program_date_time:
                 output.append('#EXT-X-PROGRAM-DATE-TIME:%s\n' %
                               format_date_time(self.program_date_time))
+            return ''.join(output)
         if self.cue_out:
             output.append('#EXT-X-CUE-OUT-CONT\n')
         output.append('#EXTINF:%s,' % int_or_float_to_string(self.duration))
@@ -393,20 +398,16 @@ class AdMarker(object):
     `type`
         Type for ad marker. Example: elemental
 
-    `total_duration`
+    `duration`
         Total duration for Ad Markers.
-
-    `ad_marker_duration`
-        Ad Marker Duration for single ad marker unit.
     '''
-    TYPES = [ 'elemental', 'scte35-enhanced' ]
+    TYPES = [ 'elemental', 'scte']
 
-    def __init__(self, type, total_duration, ad_marker_duration, oatcls_scte35, asset_caid):
+    def __init__(self, type, duration):
+        self.key = None
         self.type = type
-        self.total_duration = total_duration
-        self.ad_marker_duration = ad_marker_duration
-        self.oatcls_scte35 = oatcls_scte35
-        self.asset_caid = asset_caid
+        self.duration = duration
+        self.discontinuity = False
 
     def get_type(self):
         return self._type
@@ -416,41 +417,18 @@ class AdMarker(object):
             raise Exception("Invalid type. Only supports {}".format(''.join(TYPES)))
         self._type = t
 
-    def get_ad_marker_duration(self):
-        return self._ad_marker_duration
-
-    def set_ad_marker_duration(self, ad_m_d):
-        if ad_m_d > self.total_duration:
-            raise Exception("Invalid ad_marker_duration. Cannot be greater than total_duration")
-        self._ad_marker_duration = ad_m_d
-
     def dumps(self, last_segment):
         TWOPLACES = Decimal(10) ** -2
         output = []
-        float_total_duration = Decimal(self.total_duration).quantize(TWOPLACES)
-        float_ad_marker_duration = Decimal(self.ad_marker_duration).quantize(TWOPLACES)
+        float_duration = Decimal(self.duration).quantize(TWOPLACES)
         elapsed_duration = Decimal(0).quantize(TWOPLACES)
 
         if self.type == 'elemental':
-            output.append("#EXT-X-CUE-OUT:{}\n".format(float_total_duration))
-            while elapsed_duration < float_total_duration:
-                if (float_total_duration - elapsed_duration) < float_ad_marker_duration:
-                    elapsed_duration = elapsed_duration + (float_total_duration - elapsed_duration)
-                else:
-                    elapsed_duration = elapsed_duration + float_ad_marker_duration
-                output.append("#EXT-X-CUE-OUT-CONT: {}/{}\n".format(elapsed_duration, self.total_duration))
+            output.append("#EXT-X-CUE-OUT:{}\n".format(float_duration))
             output.append("#EXT-X-CUE-IN")
-        elif self.type == 'scte35-enhanced':
-            output.append("#EXT-OATCLS-SCTE35:{}\n".format(self.oatcls_scte35))
-            output.append("#EXT-X-ASSET:CAID={}\n".format(self.asset_caid))
-            output.append("#EXT-X-CUE-OUT:{}\n".format(float_total_duration))
-            while elapsed_duration < float_total_duration:
-                if (float_total_duration - elapsed_duration) < float_ad_marker_duration:
-                    elapsed_duration = elapsed_duration + (float_total_duration - elapsed_duration)
-                else:
-                    elapsed_duration = elapsed_duration + float_ad_marker_duration
-                output.append("#EXT-X-CUE-OUT-CONT:ElapsedTime={},Duration={},SCTE35={}\n".format(elapsed_duration, float_total_duration, self.oatcls_scte35))
-            output.append("#EXT-X-CUE-IN")
+        elif self.type == 'scte':
+            output.append("#EXT-X-SCTE-OUT:{}\n".format(float_duration))
+            output.append("#EXT-X-SCTE-IN")
 
         return ''.join(output)
 
