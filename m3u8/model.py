@@ -355,9 +355,6 @@ class Segment(BasePathMixin):
 
     def dumps(self, last_segment):
         output = []
-        if self.discontinuity:
-            output.append('#EXT-X-DISCONTINUITY')
-            return ''.join(output)
 
         if last_segment and self.key != last_segment.key:
             output.append(str(self.key))
@@ -373,7 +370,6 @@ class Segment(BasePathMixin):
             if self.program_date_time:
                 output.append('#EXT-X-PROGRAM-DATE-TIME:%s\n' %
                               format_date_time(self.program_date_time))
-            return ''.join(output)
         if self.cue_out:
             output.append('#EXT-X-CUE-OUT-CONT\n')
         output.append('#EXTINF:%s,' % int_or_float_to_string(self.duration))
@@ -386,7 +382,6 @@ class Segment(BasePathMixin):
             output.append('#EXT-X-BYTERANGE:%s\n' % self.byterange)
 
         output.append(self.uri)
-
         return ''.join(output)
 
     def __str__(self):
@@ -439,12 +434,13 @@ class AdMarker(object):
             output.append("#EXT-X-CUE-IN")
         elif self.type == 'scte':
             float_duration_three_places = Decimal(self.duration).quantize(THREEPLACES)
-            output.append("#EXT-X-DATERANGE:ID=\"{}\",START-DATE=\"{}\\\",DURATION={},SCTE35-OUT={}".format(self.scte_id, self.start_date, float_duration_three_places, self.scte35_out))
+            output.append("#EXT-X-DATERANGE:ID=\"{}\",START-DATE=\"{}\\\",DURATION={},SCTE35-OUT={}\n".format(self.scte_id, self.start_date, float_duration_three_places, self.scte35_out))
+            output.append("#EXT-X-DATERANGE:ID=\"{}\",START-DATE=\"{}\\\",SCTE35-IN={}".format(self.scte_id, self.start_date, self.scte35_out))
 
         return ''.join(output)
 
     def __str__(self):
-        return self.dumps()
+        return self.dumps(None)
 
 class SegmentList(list, GroupedBasePathMixin):
 
@@ -572,7 +568,10 @@ class Playlist(BasePathMixin):
         if self.stream_info.program_id:
             stream_inf.append('PROGRAM-ID=%d' % self.stream_info.program_id)
         if self.stream_info.closed_captions:
-            stream_inf.append('CLOSED-CAPTIONS=%s' % self.stream_info.closed_captions)
+            closed_captions_str = self.stream_info.closed_captions
+            if self.stream_info.closed_captions is not 'NONE':
+                closed_captions_str = '"{}"'.format(self.stream_info.closed_captions)
+            stream_inf.append('CLOSED-CAPTIONS=%s' % closed_captions_str)
         if self.stream_info.bandwidth:
             stream_inf.append('BANDWIDTH=%d' % self.stream_info.bandwidth)
         if self.stream_info.average_bandwidth:
