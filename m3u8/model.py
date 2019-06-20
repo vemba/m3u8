@@ -8,7 +8,7 @@ import os
 import errno
 import math
 from decimal import *
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from m3u8.protocol import ext_x_start
 from m3u8.parser import parse, format_date_time
@@ -407,13 +407,14 @@ class AdSignal(object):
     TYPES = [ 'elemental', 'scte']
     MARKER_TYPE = ['start', 'end']
 
-    def __init__(self, type, duration, marker_type='full', scte_id='', start_date=datetime.utcnow().strftime('%Y-%mT%XZ'), scte35_out = '0xF'):
+    def __init__(self, type, duration, marker_type='start', scte_id='', start_date=datetime.utcnow(), scte35_out = '0xF'):
         self.key = None
         self.type = type
         self.duration = duration
         self.discontinuity = False
         self.scte_id = scte_id
-        self.start_date = start_date
+        self.start_date = start_date.isoformat()
+        self.end_date = (start_date + timedelta(seconds=duration)).isoformat()
         self.scte35_out = scte35_out
         self.marker_type = marker_type
 
@@ -450,8 +451,8 @@ class AdSignal(object):
 
         elif self.type == 'scte':
             float_duration_three_places = Decimal(self.duration).quantize(THREEPLACES)
-            cue_out = "#EXT-X-DATERANGE:ID=\"{}\",START-DATE=\"{}\\\",DURATION={},SCTE35-OUT={}".format(self.scte_id, self.start_date, float_duration_three_places, self.scte35_out)
-            cue_in = "#EXT-X-DATERANGE:ID=\"{}\",START-DATE=\"{}\\\",SCTE35-IN={}".format(self.scte_id, self.start_date, self.scte35_out)
+            cue_out = "#EXT-X-DATERANGE:ID=\"{}\",START-DATE=\"{}\",DURATION={},SCTE35-OUT={}".format(self.scte_id, self.start_date, float_duration_three_places, self.scte35_out)
+            cue_in = "#EXT-X-DATERANGE:ID=\"{}\",START-DATE=\"{}\",SCTE35-IN={}".format(self.scte_id, self.end_date, self.scte35_out)
 
             if self.marker_type == 'start':
                 return cue_out
