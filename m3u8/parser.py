@@ -22,7 +22,7 @@ def cast_date_time(value):
 
 
 def format_date_time(value):
-    if value.tzinfo is None:
+    if value.tzinfo is not None:
         return value.isoformat()
     else:
         utc = pytz.utc.localize(value)
