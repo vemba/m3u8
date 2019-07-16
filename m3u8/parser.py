@@ -7,6 +7,7 @@ import iso8601
 import datetime
 import itertools
 import re
+import pytz
 from m3u8 import protocol
 
 '''
@@ -21,7 +22,13 @@ def cast_date_time(value):
 
 
 def format_date_time(value):
-    return value.isoformat()
+    if value.tzinfo is not None:
+        return value.isoformat()
+    else:
+        utc = pytz.utc.localize(value)
+        return utc.isoformat()
+    
+    
 
 
 
