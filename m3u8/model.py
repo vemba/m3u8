@@ -451,8 +451,8 @@ class AdSignal(object):
         elif self.type == 'scte':
             cue_in_date = self.start_date + timedelta(seconds=self.duration)
             float_duration_three_places = Decimal(self.duration).quantize(THREEPLACES)
-            cue_out = "#EXT-X-DATERANGE:ID=\"{}\",START-DATE=\"{}\",DURATION={},SCTE35-OUT={}".format(self.scte_id, self.start_date.isoformat(), float_duration_three_places, self.scte35_out)
-            cue_in = "#EXT-X-DATERANGE:ID=\"{}\",START-DATE=\"{}\",SCTE35-IN={}".format(self.scte_id, cue_in_date.isoformat(), self.scte35_out)
+            cue_out = "#EXT-X-DATERANGE:ID=\"{}\",START-DATE=\"{}\",DURATION={},SCTE35-OUT={}".format(self.scte_id, format_date_time(self.start_date), float_duration_three_places, self.scte35_out)
+            cue_in = "#EXT-X-DATERANGE:ID=\"{}\",START-DATE=\"{}\",SCTE35-IN={}".format(self.scte_id, format_date_time(cue_in_date), self.scte35_out)
 
             if self.marker_type == 'start':
                 return cue_out
