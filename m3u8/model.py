@@ -155,8 +155,17 @@ class M3U8(object):
     def _initialize_attributes(self):
         self.keys = [ Key(base_uri=self.base_uri, **params) if params else None
                       for params in self.data.get('keys', []) ]
-        self.segments = SegmentList([ Segment(base_uri=self.base_uri, keyobject=find_key(segment.get('key', {}), self.keys), **segment)
-                                      for segment in self.data.get('segments', []) ])
+
+        segments = []
+        for s in self.data.get('segments', []):
+            ad_signal_dict = s.get('ad_signal', None)
+            ad_signal = None
+            if ad_signal_dict:
+                ad_signal = AdSignal(**ad_signal_dict)
+                del s['ad_signal']
+            segments.append(Segment(base_uri=self.base_uri, ad_signal=ad_signal, keyobject=find_key(s.get('key', {}), self.keys), **s))
+
+        self.segments = SegmentList(segments)
         #self.keys = get_uniques([ segment.key for segment in self.segments ])
         for attr, param in self.simple_attributes:
             setattr(self, attr, self.data.get(param))
@@ -339,7 +348,7 @@ class Segment(BasePathMixin):
 
     def __init__(self, uri=None, base_uri=None, program_date_time=None, duration=None,
                  title=None, byterange=None, cue_out=False, discontinuity=False, key=None,
-                 scte35=None, scte35_duration=None, keyobject=None):
+                 scte35=None, scte35_duration=None, keyobject=None, ad_signal=None):
         self.uri = uri
         self.duration = duration
         self.title = title
@@ -351,10 +360,15 @@ class Segment(BasePathMixin):
         self.scte35 = scte35
         self.scte35_duration = scte35_duration
         self.key = keyobject
+        self.ad_signal = ad_signal
         # Key(base_uri=base_uri, **key) if key else None
 
     def dumps(self, last_segment):
         output = []
+
+        if self.ad_signal:
+            output.append(self.ad_signal.dumps(None))
+            output.append('\n')
 
         if last_segment and self.key != last_segment.key:
             output.append(str(self.key))

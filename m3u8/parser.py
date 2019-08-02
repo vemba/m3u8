@@ -75,6 +75,9 @@ def parse(content, strict=False, custom_tags_parser=None):
             _parse_byterange(line, state)
             state['expect_segment'] = True
 
+        elif line.startswith(protocol.ext_x_cue_out_start) or line.startswith(protocol.ext_x_cue_end) or line.startswith(protocol.ext_x_date_range):
+            _parse_ad_signal(line, state)
+
         elif line.startswith(protocol.ext_x_targetduration):
             _parse_simple_parameter(line, data, float)
 
@@ -204,7 +207,6 @@ def _parse_extinf(line, data, state, lineno, strict):
     state['segment']['duration'] = float(duration)
     state['segment']['title'] = remove_quotes(title)
 
-
 def _parse_ts_chunk(line, data, state):
     segment = state.pop('segment')
     if state.get('current_program_date_time'):
@@ -304,6 +306,31 @@ def _parse_cueout(line, state):
     if res:
         state['current_cue_out_duration'] = res.group(1)
         state['current_cue_out_scte35'] = res.group(2)
+
+def _parse_ad_signal(line, state):
+    if 'segment' not in state:
+        state['segment'] = {}
+    if 'ad_signal' not in state['segment']:
+        state['segment']['ad_signal'] = {}
+    values = line.split(':', 1)
+    attributes = '' if len(values) <= 1 else values[1]
+    if line.startswith(protocol.ext_x_cue_out_start) and attributes.isnumeric():
+        state['segment']['ad_signal']['type'] = 'elemental'
+        state['segment']['ad_signal']['marker_type'] = 'start'
+        state['segment']['ad_signal']['duration'] = attributes
+    elif line.startswith(protocol.ext_x_cue_end):
+        state['segment']['ad_signal']['type'] = 'elemental'
+        state['segment']['ad_signal']['marker_type'] = 'end'
+        state['segment']['ad_signal']['duration'] = 0
+    elif line.startswith(protocol.ext_x_date_range) and protocol.ext_x_date_range_cue_out_attr in line:
+        state['segment']['ad_signal']['type'] = 'scte'
+        state['segment']['ad_signal']['marker_type'] = 'start'
+        scte_id_attr, start_date_attr, duration_attr, scte35_out_attr = attributes.split(',')
+        state['segment']['ad_signal']['scte_id'] = scte_id_attr.split('=')[1].strip('"')
+        state['segment']['ad_signal']['start_date'] = cast_date_time(start_date_attr.split('=')[1].strip('"'))
+        state['segment']['ad_signal']['duration'] = float(duration_attr.split('=')[1])
+        state['segment']['ad_signal']['scte35_out'] = scte35_out_attr.split('=')[1]
+
 
 def _cueout_elemental(line, state, prevline):
     param, value = line.split(':', 1)
