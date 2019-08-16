@@ -370,7 +370,7 @@ class Segment(BasePathMixin):
             output.append(self.ad_signal.dumps(None))
             output.append('\n')
 
-        if last_segment and self.key != last_segment.key:
+        if last_segment and self.key != last_segment.key and self.key is not None:
             output.append(str(self.key))
             output.append('\n')
         else:
