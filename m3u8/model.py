@@ -613,7 +613,8 @@ class Playlist(BasePathMixin):
                 media_type = media.type.upper()
                 stream_inf.append('%s="%s"' % (media_type, media.group_id))
 
-        return '#EXT-X-STREAM-INF:' + ','.join(stream_inf) + '\n' + self.uri
+        new_uri = self.uri.replace('/schedules', '')
+        return '#EXT-X-STREAM-INF:' + ','.join(stream_inf) + '\n' + new_uri
 
 
 class IFramePlaylist(BasePathMixin):
