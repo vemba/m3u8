@@ -585,8 +585,6 @@ class Playlist(BasePathMixin):
 
     def __str__(self):
         stream_inf = []
-        if self.stream_info.program_id:
-            stream_inf.append('PROGRAM-ID=%d' % self.stream_info.program_id)
         if self.stream_info.closed_captions:
             closed_captions_str = self.stream_info.closed_captions
             if self.stream_info.closed_captions is not 'NONE':
@@ -657,9 +655,6 @@ class IFramePlaylist(BasePathMixin):
 
     def __str__(self):
         iframe_stream_inf = []
-        if self.iframe_stream_info.program_id:
-            iframe_stream_inf.append('PROGRAM-ID=%d' %
-                                     self.iframe_stream_info.program_id)
         if self.iframe_stream_info.bandwidth:
             iframe_stream_inf.append('BANDWIDTH=%d' %
                                      self.iframe_stream_info.bandwidth)
