@@ -163,6 +163,8 @@ class M3U8(object):
             if ad_signal_dict:
                 ad_signal = AdSignal(**ad_signal_dict)
                 del s['ad_signal']
+            if ad_signal_dict == {}:
+                del s['ad_signal']
             segments.append(Segment(base_uri=self.base_uri, ad_signal=ad_signal, keyobject=find_key(s.get('key', {}), self.keys), **s))
 
         self.segments = SegmentList(segments)

@@ -108,7 +108,6 @@ def parse(content, strict=False, custom_tags_parser=None):
 
         elif line.startswith(protocol.ext_x_cue_span):
             state['cue_out'] = True
-            state['cue_start'] = True
 
         elif line.startswith(protocol.ext_x_version):
             _parse_simple_parameter(line, data)
