@@ -27,8 +27,8 @@ def format_date_time(value):
     else:
         utc = pytz.utc.localize(value)
         return utc.isoformat()
-    
-    
+
+
 
 
 
@@ -313,6 +313,12 @@ def _parse_ad_signal(line, state):
         state['segment']['ad_signal'] = {}
     values = line.split(':', 1)
     attributes = '' if len(values) <= 1 else values[1]
+    if attributes.startswith('DURATION='):
+        duration_value = attributes.split('=',1)
+        attributes = duration_value[1]
+    if ',' in attributes:
+        duration_value = attributes.split(',', 1)
+        attributes = duration_value[0]
     if line.startswith(protocol.ext_x_cue_out_start) and attributes.isnumeric():
         state['segment']['ad_signal']['type'] = 'elemental'
         state['segment']['ad_signal']['marker_type'] = 'start'
@@ -384,4 +390,3 @@ def normalize_attribute(attribute):
 
 def is_url(uri):
     return uri.startswith(('https://', 'http://'))
-
