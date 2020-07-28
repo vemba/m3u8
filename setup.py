@@ -12,7 +12,7 @@ setup(
     name="m3u8",
     author='Globo.com',
     author_email='videos3@corp.globo.com',
-    version="0.3.7",
+    version="0.7.0",
     license='MIT',
     zip_safe=False,
     include_package_data=True,
@@ -20,5 +20,6 @@ setup(
     packages=["m3u8"],
     url="https://github.com/globocom/m3u8",
     description="Python m3u8 parser",
-    long_description=long_description
-    )
+    long_description=long_description,
+    python_requires='>=3.5'
+)

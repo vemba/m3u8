@@ -7,7 +7,6 @@
 .. image:: https://badge.fury.io/py/m3u8.svg
     :target: https://badge.fury.io/py/m3u8
 
-
 m3u8
 ====
 
@@ -16,55 +15,81 @@ Python `m3u8`_ parser.
 Documentation
 =============
 
-The basic usage is to create a playlist object from uri, file path or
-directly from a string:
+Loading a playlist
+------------------
 
-::
+To load a playlist into an object from uri, file path or directly from string, use the `load/loads` functions:
+
+.. code-block:: python
 
     import m3u8
 
-    m3u8_obj = m3u8.load('http://videoserver.com/playlist.m3u8')  # this could also be an absolute filename
-    print m3u8_obj.segments
-    print m3u8_obj.target_duration
+    playlist = m3u8.load('http://videoserver.com/playlist.m3u8')  # this could also be an absolute filename
+    print(playlist.segments)
+    print(playlist.target_duration)
 
     # if you already have the content as string, use
+    
+    playlist = m3u8.loads('#EXTM3U8 ... etc ... ')
 
-    m3u8_obj = m3u8.loads('#EXTM3U8 ... etc ... ')
+Dumping a playlist
+------------------
+
+To dump a playlist from an object to the console or a file, use the `dump/dumps` functions:
+
+.. code-block:: python
+
+    import m3u8
+
+    playlist = m3u8.load('http://videoserver.com/playlist.m3u8')
+    print(playlist.dumps())
+
+    # if you want to write a file from its content
+    
+    playlist.dump('playlist.m3u8')
+
 
 Supported tags
-=============
+==============
 
-* #EXT-X-TARGETDURATION
-* #EXT-X-MEDIA-SEQUENCE
-* #EXT-X-DISCONTINUITY-SEQUENCE
-* #EXT-X-PROGRAM-DATE-TIME
-* #EXT-X-MEDIA
-* #EXT-X-PLAYLIST-TYPE
-* #EXT-X-KEY
-* #EXT-X-STREAM-INF
-* #EXT-X-VERSION
+* `#EXT-X-TARGETDURATION`_
+* `#EXT-X-MEDIA-SEQUENCE`_
+* `#EXT-X-DISCONTINUITY-SEQUENCE`_
+* `#EXT-X-PROGRAM-DATE-TIME`_
+* `#EXT-X-MEDIA`_
+* `#EXT-X-PLAYLIST-TYPE`_
+* `#EXT-X-KEY`_
+* `#EXT-X-STREAM-INF`_
+* `#EXT-X-VERSION`_
 * #EXT-X-ALLOW-CACHE
-* #EXT-X-ENDLIST
-* #EXTINF
-* #EXT-X-I-FRAMES-ONLY
-* #EXT-X-BYTERANGE
-* #EXT-X-I-FRAME-STREAM-INF
-* #EXT-X-DISCONTINUITY
+* `#EXT-X-ENDLIST`_
+* `#EXTINF`_
+* `#EXT-X-I-FRAMES-ONLY`_
+* `#EXT-X-BYTERANGE`_
+* `#EXT-X-I-FRAME-STREAM-INF`_
+* `#EXT-X-DISCONTINUITY`_
 * #EXT-X-CUE-OUT
 * #EXT-X-CUE-OUT-CONT
-* #EXT-X-INDEPENDENT-SEGMENTS
-* #EXT-OATCLS-SCTE35
-* #EXT-X-CUE-OUT
 * #EXT-X-CUE-IN
 * #EXT-X-CUE-SPAN
-* #EXT-X-MAP
-* #EXT-X-START
+* #EXT-OATCLS-SCTE35
+* `#EXT-X-INDEPENDENT-SEGMENTS`_
+* `#EXT-X-MAP`_
+* `#EXT-X-START`_
+* #EXT-X-SERVER-CONTROL
+* #EXT-X-PART-INF
+* #EXT-X-PART
+* #EXT-X-RENDITION-REPORT
+* #EXT-X-SKIP
+* `#EXT-X-SESSION-DATA`_
+* `#EXT-X-DATERANGE`_
+* `#EXT-X-GAP`_
 
 Encryption keys
 ---------------
 
 The segments may be or not encrypted. The ``keys`` attribute list will
-be an list  with all the different keys as described with `#EXT-X-KEY`_:
+be a list  with all the different keys as described with `#EXT-X-KEY`_:
 
 Each key has the next properties:
 
@@ -79,7 +104,7 @@ or more keys afterwards.
 
 To traverse the list of keys available:
 
-::
+.. code-block:: python
 
     import m3u8
 
@@ -101,7 +126,7 @@ retrieve the list of segments encrypted with one key via ``by_key`` method in th
 
 Example of getting the segments with no encryption:
 
-::
+.. code-block:: python
 
     import m3u8
 
@@ -112,10 +137,10 @@ Example of getting the segments with no encryption:
     segm = m3u8_obj.segments.by_key( m3u8_obj.keys[-1] )
 
 
-With this method, is now possible also to change the key from some of the segments programatically:
+With this method, is now possible also to change the key from some of the segments programmatically:
 
 
-::
+.. code-block:: python
 
     import m3u8
 
@@ -137,7 +162,7 @@ A playlist can have a list to other playlist files, this is used to
 represent multiple bitrates videos, and it's called `variant streams`_.
 See an `example here`_.
 
-::
+.. code-block:: python
 
     variant_m3u8 = m3u8.loads('#EXTM3U8 ... contains a variant stream ...')
     variant_m3u8.is_variant    # in this case will be True
@@ -169,7 +194,7 @@ to specify where the I-frames are in a video. See `Apple's documentation`_ on
 this for more information. These I-frame playlists can be accessed in a similar
 way to regular playlists.
 
-::
+.. code-block:: python
 
     variant_m3u8 = m3u8.loads('#EXTM3U ... contains a variant stream ...')
 
@@ -195,7 +220,7 @@ Quoting the documentation::
 This library ignores all the non standard tags by default. If you want them to be collected while loading the file content,
 you need to pass a function to the `load/loads` functions, following the example below:
 
-::
+.. code-block:: python
 
     import m3u8
 
@@ -207,11 +232,52 @@ you need to pass a function to the `load/loads` functions, following the example
     m3u8_obj = m3u8.load('http://videoserver.com/playlist.m3u8', custom_tags_parser=get_movie)
     print(m3u8_obj.data['movie'])  #  million dollar baby
 
+Using different HTTP clients
+----------------------------
+
+If you don't want to use urllib to download playlists, having more control on how objects are fetched over the internet,
+you can use your own client. `requests` is a well known Python HTTP library and it can be used with `m3u8`:
+
+.. code-block:: python
+
+    import m3u8
+    import requests
+
+    class RequestsClient():
+        def download(self, uri, timeout=None, headers={}, verify_ssl=True):
+            o = requests.get(uri, timeout=timeout, headers=headers)
+            return o.text, o.url
+
+    playlist = m3u8.load('http://videoserver.com/playlist.m3u8', http_client=RequestsClient())
+    print(playlist.dumps())
+
+The advantage of using a custom HTTP client is to refine SSL verification, proxies, performance, flexibility, etc.
+
+Playlists behind proxies
+------------------------
+
+In case you need to use a proxy but can't use a system wide proxy (HTTP/HTTPS proxy environment variables), you can pass your
+HTTP/HTTPS proxies as a dict to the load function.
+
+.. code-block:: python
+
+    import m3u8
+
+    proxies = {
+        'http': 'http://10.10.1.10:3128',
+        'https': 'http://10.10.1.10:1080',
+    }
+
+    http_client = m3u8.httpclient.DefaultHTTPClient(proxies)
+    playlist = m3u8.load('http://videoserver.com/playlist.m3u8', http_client=http_client)  # this could also be an absolute filename
+    print(playlist.dumps())
+
+It works with the default client only. Custom HTTP clients must implement this feature.
 
 Running Tests
 =============
 
-::
+.. code-block:: bash
 
     $ ./runtests
 
@@ -227,16 +293,35 @@ If you plan to implement a new feature or something that will take more
 than a few minutes, please open an issue to make sure we don't work on
 the same thing.
 
-.. _m3u8: https://tools.ietf.org/html/draft-pantos-http-live-streaming-20
-.. _#EXT-X-KEY: http://tools.ietf.org/html/draft-pantos-http-live-streaming-07#section-3.3.4
+.. _m3u8: https://tools.ietf.org/html/rfc8216
+.. _#EXT-X-VERSION: https://tools.ietf.org/html/rfc8216#section-4.3.1.2
+.. _#EXTINF: https://tools.ietf.org/html/rfc8216#section-4.3.2.1
+.. _#EXT-X-BYTERANGE: https://tools.ietf.org/html/rfc8216#section-4.3.2.2
+.. _#EXT-X-DISCONTINUITY: https://tools.ietf.org/html/rfc8216#section-4.3.2.3
+.. _#EXT-X-KEY: https://tools.ietf.org/html/rfc8216#section-4.3.2.4
+.. _#EXT-X-MAP: https://tools.ietf.org/html/rfc8216#section-4.3.2.5
+.. _#EXT-X-PROGRAM-DATE-TIME: https://tools.ietf.org/html/rfc8216#section-4.3.2.6
+.. _#EXT-X-DATERANGE: https://tools.ietf.org/html/rfc8216#section-4.3.2.7
+.. _#EXT-X-TARGETDURATION: https://tools.ietf.org/html/rfc8216#section-4.3.3.1
+.. _#EXT-X-MEDIA-SEQUENCE: https://tools.ietf.org/html/rfc8216#section-4.3.3.2
+.. _#EXT-X-DISCONTINUITY-SEQUENCE: https://tools.ietf.org/html/rfc8216#section-4.3.3.3
+.. _#EXT-X-ENDLIST: https://tools.ietf.org/html/rfc8216#section-4.3.3.4
+.. _#EXT-X-PLAYLIST-TYPE: https://tools.ietf.org/html/rfc8216#section-4.3.3.5
+.. _#EXT-X-I-FRAMES-ONLY: https://tools.ietf.org/html/rfc8216#section-4.3.3.6
+.. _#EXT-X-MEDIA: https://tools.ietf.org/html/rfc8216#section-4.3.4.1
+.. _#EXT-X-STREAM-INF: https://tools.ietf.org/html/rfc8216#section-4.3.4.2
+.. _#EXT-X-I-FRAME-STREAM-INF: https://tools.ietf.org/html/rfc8216#section-4.3.4.3
+.. _#EXT-X-SESSION-DATA: https://tools.ietf.org/html/rfc8216#section-4.3.4.4
+.. _#EXT-X-INDEPENDENT-SEGMENTS: https://tools.ietf.org/html/rfc8216#section-4.3.5.1
+.. _#EXT-X-START: https://tools.ietf.org/html/rfc8216#section-4.3.5.2
+.. _#EXT-X-DATERANGE: https://tools.ietf.org/html/rfc8216#section-4.3.2.7
+.. _#EXT-X-GAP: https://tools.ietf.org/html/draft-pantos-hls-rfc8216bis-05#section-4.4.2.7
 .. _issue 1: https://github.com/globocom/m3u8/issues/1
-.. _variant streams: http://tools.ietf.org/html/draft-pantos-http-live-streaming-08#section-6.2.4
+.. _variant streams: https://tools.ietf.org/html/rfc8216#section-6.2.4
 .. _example here: http://tools.ietf.org/html/draft-pantos-http-live-streaming-08#section-8.5
-.. _#EXT-X-STREAM-INF: https://tools.ietf.org/html/draft-pantos-http-live-streaming-16#section-4.3.4.2
 .. _issue 4: https://github.com/globocom/m3u8/issues/4
-.. _I-frame playlists: https://tools.ietf.org/html/draft-pantos-http-live-streaming-16#section-4.3.4.3
+.. _I-frame playlists: https://tools.ietf.org/html/rfc8216#section-4.3.4.3
 .. _Apple's documentation: https://developer.apple.com/library/ios/technotes/tn2288/_index.html#//apple_ref/doc/uid/DTS40012238-CH1-I_FRAME_PLAYLIST
 .. _Alternative audio: http://tools.ietf.org/html/draft-pantos-http-live-streaming-08#section-8.7
-.. _#EXT-X-MEDIA: https://tools.ietf.org/html/draft-pantos-http-live-streaming-16#section-4.3.4.1
 .. _VOD: https://developer.apple.com/library/mac/technotes/tn2288/_index.html#//apple_ref/doc/uid/DTS40012238-CH1-TNTAG2
 .. _EVENT: https://developer.apple.com/library/mac/technotes/tn2288/_index.html#//apple_ref/doc/uid/DTS40012238-CH1-EVENT_PLAYLIST
