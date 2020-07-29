@@ -7,7 +7,6 @@ import iso8601
 import datetime
 import itertools
 import re
-import pytz
 from m3u8 import protocol
 
 '''
@@ -22,13 +21,7 @@ def cast_date_time(value):
 
 
 def format_date_time(value):
-    if value.tzinfo is not None:
-        return value.isoformat()
-    else:
-        utc = pytz.utc.localize(value)
-        return utc.isoformat()
-
-
+    return value.isoformat()
 
 
 
@@ -80,9 +73,6 @@ def parse(content, strict=False, custom_tags_parser=None):
         if line.startswith(protocol.ext_x_byterange):
             _parse_byterange(line, state)
             state['expect_segment'] = True
-
-        elif line.startswith(protocol.ext_x_cue_out_start) or line.startswith(protocol.ext_x_cue_end) or line.startswith(protocol.ext_x_date_range):
-            _parse_ad_signal(line, state)
 
         elif line.startswith(protocol.ext_x_targetduration):
             _parse_simple_parameter(line, data, float)
@@ -250,6 +240,7 @@ def _parse_extinf(line, data, state, lineno, strict):
         state['segment'] = {}
     state['segment']['duration'] = float(duration)
     state['segment']['title'] = title
+
 
 def _parse_ts_chunk(line, data, state):
     segment = state.pop('segment')
@@ -537,3 +528,4 @@ def normalize_attribute(attribute):
 
 def is_url(uri):
     return uri.startswith(('https://', 'http://'))
+

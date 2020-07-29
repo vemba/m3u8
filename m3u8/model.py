@@ -6,8 +6,6 @@ import decimal
 import os
 import errno
 import math
-from decimal import *
-from datetime import datetime, timedelta
 
 from m3u8.protocol import ext_x_start, ext_x_key, ext_x_session_key, ext_x_map
 from m3u8.parser import parse, format_date_time
@@ -161,19 +159,8 @@ class M3U8(object):
     def _initialize_attributes(self):
         self.keys = [ Key(base_uri=self.base_uri, **params) if params else None
                       for params in self.data.get('keys', []) ]
-
-        segments = []
-        for s in self.data.get('segments', []):
-            ad_signal_dict = s.get('ad_signal', None)
-            ad_signal = None
-            if ad_signal_dict:
-                ad_signal = AdSignal(**ad_signal_dict)
-                del s['ad_signal']
-            if ad_signal_dict == {}:
-                del s['ad_signal']
-            segments.append(Segment(base_uri=self.base_uri, ad_signal=ad_signal, keyobject=find_key(s.get('key', {}), self.keys), **s))
-
-        self.segments = SegmentList(segments)
+        self.segments = SegmentList([ Segment(base_uri=self.base_uri, keyobject=find_key(segment.get('key', {}), self.keys), **segment)
+                                      for segment in self.data.get('segments', []) ])
         #self.keys = get_uniques([ segment.key for segment in self.segments ])
         for attr, param in self.simple_attributes:
             setattr(self, attr, self.data.get(param))
