@@ -347,6 +347,8 @@ def _parse_simple_parameter(line, data, cast_to=str):
 
 
 def _parse_cueout_cont(line, state):
+    if ':' not in line:
+        return
     param, value = line.split(':', 1)
     res = re.match('.*Duration=(.*),SCTE35=(.*)$', value)
     if res:
